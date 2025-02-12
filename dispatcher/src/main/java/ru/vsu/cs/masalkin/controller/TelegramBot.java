@@ -2,7 +2,6 @@ package ru.vsu.cs.masalkin.controller;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -41,13 +40,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        updateController.proccessUpdate(update);
+        updateController.processUpdate(update);
     }
 
-    public void sendAnswerMessage(SendMessage message) {
-        if (message != null) {
+    public void sendAnswerMessage(SendMessage sendMessage) {
+        if (sendMessage != null) {
             try {
-                execute(message);
+                execute(sendMessage);
             } catch (TelegramApiException e) {
                 log.error(e);
             }

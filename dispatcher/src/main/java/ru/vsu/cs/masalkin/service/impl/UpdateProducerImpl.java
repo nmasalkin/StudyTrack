@@ -18,7 +18,12 @@ public class UpdateProducerImpl implements UpdateProducer {
 
     @Override
     public void produce(String rabbitQueue, Update update) {
-        log.debug(update.getMessage().getText());
+        if (update.hasMessage()) {
+            log.debug(update.getMessage().getText() + " by " + update.getMessage().getFrom().getUserName());
+
+        } else {
+            log.debug(update.getCallbackQuery().getData() + " by " + update.getCallbackQuery().getFrom().getUserName());
+        }
         rabbitTemplate.convertAndSend(rabbitQueue, update);
     }
 }
