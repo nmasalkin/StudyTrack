@@ -3,9 +3,10 @@ package ru.vsu.cs.masalkin.service.impl;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import ru.vsu.cs.masalkin.service.ProducerService;
 
-import static ru.vsu.cs.masalkin.RabbitQueue.ANSWER_MESSAGE;
+import static ru.vsu.cs.masalkin.RabbitQueue.*;
 
 @Service
 public class ProducerServiceImpl implements ProducerService {
@@ -19,5 +20,10 @@ public class ProducerServiceImpl implements ProducerService {
     @Override
     public void produceAnswer(SendMessage sendMessage) {
         rabbitTemplate.convertAndSend(ANSWER_MESSAGE, sendMessage);
+    }
+
+    @Override
+    public void produceEditAnswer(EditMessageText editMessageText) {
+        rabbitTemplate.convertAndSend(EDIT_ANSWER_MESSAGE, editMessageText);
     }
 }

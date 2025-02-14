@@ -4,7 +4,10 @@ public enum ServiceCommands {
     START("/start"),
     HELP("/help"),
     REGISTRATION("/registration"),
-    TOGGLE_NOTIFICATION("/toggle_notification");
+    MENU("/menu"),
+    TOGGLE_NOTIFICATION("/toggle_notification"),
+    SEMESTER_LIST("/semester_list"),
+    ABOUT_BOT("/about_bot");
 
     private final String cmd;
 

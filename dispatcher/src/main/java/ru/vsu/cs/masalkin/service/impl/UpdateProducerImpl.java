@@ -19,10 +19,9 @@ public class UpdateProducerImpl implements UpdateProducer {
     @Override
     public void produce(String rabbitQueue, Update update) {
         if (update.hasMessage()) {
-            log.debug(update.getMessage().getText() + " by " + update.getMessage().getFrom().getUserName());
-
-        } else {
-            log.debug(update.getCallbackQuery().getData() + " by " + update.getCallbackQuery().getFrom().getUserName());
+            log.debug(update.getMessage().getText() + " by " + update.getMessage().getFrom().getUserName() + " in chat " + update.getMessage().getChatId());
+        } else if (update.hasCallbackQuery()) {
+            log.debug(update.getCallbackQuery().getData() + " by " + update.getCallbackQuery().getFrom().getUserName() + " in chat " + update.getCallbackQuery().getMessage().getChatId());
         }
         rabbitTemplate.convertAndSend(rabbitQueue, update);
     }

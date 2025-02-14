@@ -30,4 +30,9 @@ public class RabbitConfiguration {
     public Queue answerMessageQueue() {
         return new Queue(ANSWER_MESSAGE);
     }
+
+    @Bean
+    public Queue editAnswerMessageQueue() {
+        return new Queue(EDIT_ANSWER_MESSAGE);
+    }
 }

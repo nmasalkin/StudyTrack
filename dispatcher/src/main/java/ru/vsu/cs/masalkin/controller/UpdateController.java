@@ -3,6 +3,7 @@ package ru.vsu.cs.masalkin.controller;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.vsu.cs.masalkin.service.UpdateProducer;
 import ru.vsu.cs.masalkin.utils.MessageUtils;
@@ -45,7 +46,11 @@ public class UpdateController {
     private void distributeMessagesByType(Update update) {
         var message = update.getMessage();
         if (message.hasText()) {
-            processTextMessage(update);
+            if (update.getMessage().getText().length() > 100){
+                setUnsupportedMessageType(update);
+            }else {
+                processTextMessage(update);
+            }
         } else {
             setUnsupportedMessageType(update);
         }
@@ -59,6 +64,10 @@ public class UpdateController {
 
     public void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);
+    }
+
+    public void setView(EditMessageText editMessageText) {
+        telegramBot.sendEditMessage(editMessageText);
     }
 
     private void processTextMessage(Update update) {
