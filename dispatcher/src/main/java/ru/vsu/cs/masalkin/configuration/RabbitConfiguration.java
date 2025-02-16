@@ -35,4 +35,9 @@ public class RabbitConfiguration {
     public Queue editAnswerMessageQueue() {
         return new Queue(EDIT_ANSWER_MESSAGE);
     }
+
+    @Bean
+    public Queue deleteMessageQueue() {
+        return new Queue(DELETE_MESSAGE);
+    }
 }

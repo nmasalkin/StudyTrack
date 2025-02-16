@@ -1,8 +1,10 @@
 package ru.vsu.cs.masalkin.service;
 
-import org.telegram.telegrambots.meta.api.objects.Update;
-
 public interface MainService {
-    void processTextMessage(Update update);
-    void processCallbackMessage(Update update);
+    void menuProcess(Long chatId);
+    void menuProcess(Long chatId, Integer messageId);
+    void chooseSemesterProcess(Long chatId, Integer messageId);
+    void semesterProcess(int semesterNumber, Long chatId, Integer messageId);
+    void toggleNotificationProcess(Long chatId, Integer messageId);
+    void aboutBotProcess(Long chatId);
 }

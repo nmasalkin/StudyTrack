@@ -3,6 +3,7 @@ package ru.vsu.cs.masalkin.controller;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.vsu.cs.masalkin.service.UpdateProducer;
@@ -68,6 +69,10 @@ public class UpdateController {
 
     public void setView(EditMessageText editMessageText) {
         telegramBot.sendEditMessage(editMessageText);
+    }
+
+    public void setView(DeleteMessage deleteMessage) {
+        telegramBot.sendDeleteMessage(deleteMessage);
     }
 
     private void processTextMessage(Update update) {

@@ -5,7 +5,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.vsu.cs.masalkin.service.ConsumerService;
-import ru.vsu.cs.masalkin.service.MainService;
+import ru.vsu.cs.masalkin.service.StartService;
 
 import static ru.vsu.cs.masalkin.RabbitQueue.CALLBACK_MESSAGE_UPDATE;
 import static ru.vsu.cs.masalkin.RabbitQueue.TEXT_MESSAGE_UPDATE;
@@ -14,23 +14,23 @@ import static ru.vsu.cs.masalkin.RabbitQueue.TEXT_MESSAGE_UPDATE;
 @Log4j
 public class ConsumerServiceImpl implements ConsumerService {
 
-    private final MainService mainService;
+    private final StartService startService;
 
-    public ConsumerServiceImpl(MainService mainService) {
-        this.mainService = mainService;
+    public ConsumerServiceImpl(StartService startService) {
+        this.startService = startService;
     }
 
     @Override
     @RabbitListener(queues = TEXT_MESSAGE_UPDATE)
     public void consumeTextMessageUpdates(Update update) {
         log.debug("NODE: Text message is received");
-        mainService.processTextMessage(update);
+        startService.processTextMessage(update);
     }
 
     @Override
     @RabbitListener(queues = CALLBACK_MESSAGE_UPDATE)
     public void consumeCallbackMessageUpdates(Update update) {
         log.debug("NODE: CallbackQuery message is received");
-        mainService.processCallbackMessage(update);
+        startService.processCallbackMessage(update);
     }
 }

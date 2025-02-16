@@ -7,3 +7,10 @@ spring:
     port: 5672
     username: admin
     password:
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/studytrack
+    username: admin
+    password:
+  jpa:
+    generate-ddl: true

@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>dispatcher</module>
-        <module>common-rabbitmq</module>
+        <module>common</module>
         <module>node</module>
     </modules>
 
