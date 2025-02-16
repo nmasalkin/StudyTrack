@@ -1,27 +1,35 @@
 package ru.vsu.cs.masalkin.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.vsu.cs.masalkin.entity.SubjectMarks;
 import ru.vsu.cs.masalkin.repository.AppUserRepository;
+import ru.vsu.cs.masalkin.service.JsonMapper;
 import ru.vsu.cs.masalkin.service.MainService;
 import ru.vsu.cs.masalkin.service.ProducerService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MainServiceImpl implements MainService {
 
     private final ProducerService producerService;
     private final AppUserRepository appUserRepository;
+    private final JsonMapper jsonMapper;
 
-    public MainServiceImpl(ProducerService producerService, AppUserRepository appUserRepository) {
+    public MainServiceImpl(ProducerService producerService, AppUserRepository appUserRepository, JsonMapper jsonMapper) {
         this.producerService = producerService;
         this.appUserRepository = appUserRepository;
+        this.jsonMapper = jsonMapper;
     }
 
     public void menuProcess(Long chatId) {
@@ -90,7 +98,12 @@ public class MainServiceImpl implements MainService {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
-        for (int i = 8; i > 0; i--) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + appUserRepository.findByChatId(chatId).getAccess_token());
+        ResponseEntity<Map> response1 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+
+        for (int i = (int) response1.getBody().get("semester"); i > 0; i--) {
             List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
             InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
             inlineKeyboardButton.setText("Семестр №" + i);
@@ -117,28 +130,36 @@ public class MainServiceImpl implements MainService {
         var editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setMessageId(messageId);
-        //editMessageText.setParseMode("MarkdownV2");
-
-//        StringBuilder stringBuilder = new StringBuilder();
-//        stringBuilder.append(String.format("*__Ваши оценки за %d семестр:__*\n\n", semesterNumber));
-
-        if (appUserRepository.existsByChatId(chatId)) {
-            editMessageText.setText(appUserRepository.findByChatId(chatId).getStudent_marks().toString().substring(0, 1000));
-        } else {
+        editMessageText.setParseMode("MarkdownV2");
+        if (!appUserRepository.existsByChatId(chatId)) {
             editMessageText.setText("Вы не зарегистрированы");
         }
 
-//        if (subjectMarks.isEmpty()) {
-//            editMessageText.setText("У вас нет оценок за данный семестр");
-//        } else {
-//            for (SubjectMarks subjectMark : subjectMarks) {
-//                stringBuilder.append(String.format("                    *%s*:\n" +
-//                                                   "Атт1:  *%d*,  Атт2:  *%d*,  Атт3:  *%d*,  Итог:  *%d(%s)*",
-//                                                   subjectMark.getSubject_name(), subjectMark.getAtt1(), subjectMark.getAtt2(), subjectMark.getAtt3(), subjectMark.getResult(), subjectMark.getResult5()));
-//                stringBuilder.append("\n\n");
-//            }
-//            editMessageText.setText(stringBuilder.toString());
-//        }
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + appUserRepository.findByChatId(chatId).getAccess_token());
+        ResponseEntity<Map> response2 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+        Map<String, Object> responseBody = response2.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> marks = objectMapper.convertValue(responseBody.get("marks"), new TypeReference<>() {});
+        List<SubjectMarks> subjectMarks = jsonMapper.jsonToSubjectMarks(marks, semesterNumber);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(String.format("*__Ваши оценки за %d семестр:__*\n\n", semesterNumber));
+
+        if (subjectMarks.isEmpty()) {
+            editMessageText.setText("У вас нет оценок за данный семестр");
+        } else {
+            for (SubjectMarks subjectMark : subjectMarks) {
+                stringBuilder.append(String.format("*%s*:\n" +
+                                                   "Атт1:  *%d*,  Атт2:  *%d*,  Атт3:  *%d*\n" +
+                                                   "Итог:  *%d\\(%s\\)*",
+                        subjectMark.getSubject_name(), subjectMark.getAtt1(), subjectMark.getAtt2(), subjectMark.getAtt3(), subjectMark.getResult(), subjectMark.getResult5()));
+                stringBuilder.append("\n\n");
+            }
+            var sb = new StringBuilder(stringBuilder.toString().replace("+", "\\+").replace("-", "\\-").replace("null", "~   ~"));
+            editMessageText.setText(sb.toString());
+        }
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();

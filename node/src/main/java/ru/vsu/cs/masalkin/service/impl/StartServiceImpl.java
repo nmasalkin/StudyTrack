@@ -1,12 +1,13 @@
 package ru.vsu.cs.masalkin.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -226,7 +227,10 @@ public class StartServiceImpl implements StartService {
         appUser.setAccess_token(response.getBody().get("access_token").toString());
         appUser.setRefresh_token(response.getBody().get("refresh_token").toString());
         ResponseEntity<Map> response2 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
-        appUser.setStudent_marks(response2.getBody());
+        Map<String, Object> responseBody = response2.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> marks = objectMapper.convertValue(responseBody.get("marks"), new TypeReference<>() {});
+        appUser.setStudent_marks(marks);
         appUserRepository.save(appUser);
 
         return appUser;

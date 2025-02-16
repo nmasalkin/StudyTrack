@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.sql.Types;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -25,13 +25,13 @@ public class AppUser {
     @JdbcTypeCode(SqlTypes.BOOLEAN)
     private boolean toggle_notification;
 
-    @JdbcTypeCode(Types.LONGVARCHAR)
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     private String access_token;
 
-    @JdbcTypeCode(Types.LONGVARCHAR)
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     private String refresh_token;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Map<String, Object> student_marks;
+    private List<Map<String, Object>> student_marks;
 }
