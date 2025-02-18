@@ -7,6 +7,7 @@ public enum ServiceCommands {
     MENU("/menu"),
     TOGGLE_NOTIFICATION("/toggle_notification"),
     SEMESTER_LIST("/semester_list"),
+    STUDENT_INFO("/student_info"),
     ABOUT_BOT("/about_bot");
 
     private final String cmd;

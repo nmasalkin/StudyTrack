@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.vsu.cs.masalkin.entity.AppUser;
 import ru.vsu.cs.masalkin.repository.AppUserRepository;
+import ru.vsu.cs.masalkin.service.ApiService;
 import ru.vsu.cs.masalkin.service.MainService;
 import ru.vsu.cs.masalkin.service.StartService;
 import ru.vsu.cs.masalkin.service.ProducerService;
@@ -34,16 +35,18 @@ public class StartServiceImpl implements StartService {
     private final ProducerService producerService;
     private final MainService mainService;
     private final AppUserRepository appUserRepository;
+    private final ApiService apiService;
 
     private final Map<Long, UserState> userStates = new ConcurrentHashMap<>();
     private final Map<Long, String> userLogins = new ConcurrentHashMap<>();
     private final Map<Long, ScheduledFuture<?>> pendingUsers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public StartServiceImpl(ProducerService producerService, MainService mainService, AppUserRepository appUserRepository) {
+    public StartServiceImpl(ProducerService producerService, MainService mainService, AppUserRepository appUserRepository, ApiService apiService) {
         this.producerService = producerService;
         this.mainService = mainService;
         this.appUserRepository = appUserRepository;
+        this.apiService = apiService;
     }
 
     public void processTextMessage(Update update) {
@@ -99,6 +102,12 @@ public class StartServiceImpl implements StartService {
             } else {
                 mainService.chooseSemesterProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
+        } else if (STUDENT_INFO.equals(data)) {
+            if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
+                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+            } else {
+                mainService.studentInfoProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+            }
         } else if (TOGGLE_NOTIFICATION.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
@@ -150,7 +159,7 @@ public class StartServiceImpl implements StartService {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Для того чтобы зарегистрироваться нужно ввести данные от БРС.\n" +
-                                "На ввод логина и пароля дается 2 минуты.");
+                            "На ввод логина и пароля дается 2 минуты.");
         producerService.produceAnswer(sendMessage);
         sendAnswer("Введите логин", chatId);
 
@@ -176,62 +185,29 @@ public class StartServiceImpl implements StartService {
     }
 
     public void handlePassword(Long chatId, String password) {
-        var login = userLogins.get(chatId);
+        saveUser(chatId, userLogins.get(chatId), password);
         userStates.remove(chatId);
         userLogins.remove(chatId);
         ScheduledFuture<?> future = pendingUsers.remove(chatId);
         if (future != null) {
             future.cancel(false);
         }
+    }
 
-        AppUser appUser = saveUser(chatId, login, password);
+    private AppUser saveUser(Long chatId, String login, String password) {
+        AppUser appUser = apiService.getUser(chatId, login, password);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-
         if (appUser != null) {
-            sendMessage.setText(appUser.getFirstName() + ", вы успешно зарегистрировались!");
+            appUserRepository.save(appUser);
+            sendMessage.setText(appUser.getFirstname() + ", вы успешно зарегистрировались!");
             producerService.produceAnswer(sendMessage);
             mainService.menuProcess(chatId);
         } else {
             sendMessage.setText("Неверные данные");
             producerService.produceAnswer(sendMessage);
         }
-    }
-
-    private AppUser saveUser(Long chatId, String login, String password) {
-        RestTemplate restTemplate = new RestTemplate();
-        Map<String, String> requestBody = Map.of("username", login, "password", password);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
-
-        ResponseEntity<Map> response;
-        try {
-            response = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/auth_jwt/login", HttpMethod.POST, request, Map.class);
-        } catch (Exception e) {
-            log.error(e);
-            return null;
-        }
-
-        headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + response.getBody().get("access_token"));
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map> response1 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, entity, Map.class);
-
-        AppUser appUser = new AppUser();
-        appUser.setChatId(chatId);
-        appUser.setFirstName(response1.getBody().get("firstname").toString());
-        appUser.setToggle_notification(false);
-        appUser.setAccess_token(response.getBody().get("access_token").toString());
-        appUser.setRefresh_token(response.getBody().get("refresh_token").toString());
-        ResponseEntity<Map> response2 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
-        Map<String, Object> responseBody = response2.getBody();
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<Map<String, Object>> marks = objectMapper.convertValue(responseBody.get("marks"), new TypeReference<>() {});
-        appUser.setStudent_marks(marks);
-        appUserRepository.save(appUser);
 
         return appUser;
     }
@@ -239,7 +215,7 @@ public class StartServiceImpl implements StartService {
     private void sendTimeoutMessage(Long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("⏳Время для ввода истекло. Попробуйте снова.");
+        sendMessage.setText("⏳Время для ввода истекло. Повторите попытку.");
         producerService.produceAnswer(sendMessage);
         startProcess(chatId);
     }

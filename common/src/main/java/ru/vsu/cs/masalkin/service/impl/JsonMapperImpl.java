@@ -11,7 +11,7 @@ import java.util.Map;
 @Service
 public class JsonMapperImpl implements JsonMapper {
     @Override
-    public List<SubjectMarks> jsonToSubjectMarks(List<Map<String, Object>> json, int semesterNumber) {
+    public List<SubjectMarks> getStudentMarksBySemester(List<Map<String, Object>> json, int semesterNumber) {
         List<SubjectMarks> subjectMarksList = new ArrayList<>();
         for (Map<String, Object> map : json){
             if (map.get("semester").equals(semesterNumber)){

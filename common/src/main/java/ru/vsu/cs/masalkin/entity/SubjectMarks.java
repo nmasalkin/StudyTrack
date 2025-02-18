@@ -29,9 +29,9 @@ public class SubjectMarks {
             } else if (result >= 70) {
                 this.result5 = "Хорошо";
             } else if (result >= 50) {
-                this.result5 = "Удовлетворительно";
+                this.result5 = "Удовл.";
             } else {
-                this.result5 = "Неудовлетворительно";
+                this.result5 = "Неудовл.";
             }
         }
     }

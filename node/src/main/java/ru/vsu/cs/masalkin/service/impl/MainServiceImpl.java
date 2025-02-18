@@ -1,16 +1,14 @@
 package ru.vsu.cs.masalkin.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.vsu.cs.masalkin.entity.AppUser;
 import ru.vsu.cs.masalkin.entity.SubjectMarks;
 import ru.vsu.cs.masalkin.repository.AppUserRepository;
+import ru.vsu.cs.masalkin.service.ApiService;
 import ru.vsu.cs.masalkin.service.JsonMapper;
 import ru.vsu.cs.masalkin.service.MainService;
 import ru.vsu.cs.masalkin.service.ProducerService;
@@ -25,11 +23,13 @@ public class MainServiceImpl implements MainService {
     private final ProducerService producerService;
     private final AppUserRepository appUserRepository;
     private final JsonMapper jsonMapper;
+    private final ApiService apiService;
 
-    public MainServiceImpl(ProducerService producerService, AppUserRepository appUserRepository, JsonMapper jsonMapper) {
+    public MainServiceImpl(ProducerService producerService, AppUserRepository appUserRepository, JsonMapper jsonMapper, ApiService apiService) {
         this.producerService = producerService;
         this.appUserRepository = appUserRepository;
         this.jsonMapper = jsonMapper;
+        this.apiService = apiService;
     }
 
     public void menuProcess(Long chatId) {
@@ -78,10 +78,17 @@ public class MainServiceImpl implements MainService {
 
         List<InlineKeyboardButton> lineOfButtons2 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton2.setText("Вкл/выкл уведомления");
-        inlineKeyboardButton2.setCallbackData("/toggle_notification");
+        inlineKeyboardButton2.setText("Инфо о студенте");
+        inlineKeyboardButton2.setCallbackData("/student_info");
         lineOfButtons2.add(inlineKeyboardButton2);
         listOfButtons.add(lineOfButtons2);
+
+        List<InlineKeyboardButton> lineOfButtons3 = new ArrayList<>();
+        InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
+        inlineKeyboardButton3.setText("Вкл/выкл уведомления");
+        inlineKeyboardButton3.setCallbackData("/toggle_notification");
+        lineOfButtons3.add(inlineKeyboardButton3);
+        listOfButtons.add(lineOfButtons3);
 
         markupInline.setKeyboard(listOfButtons);
         editMessageText.setReplyMarkup(markupInline);
@@ -98,15 +105,14 @@ public class MainServiceImpl implements MainService {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + appUserRepository.findByChatId(chatId).getAccess_token());
-        ResponseEntity<Map> response1 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-
-        for (int i = (int) response1.getBody().get("semester"); i > 0; i--) {
+        for (int i = appUserRepository.findByChatId(chatId).getCurrentSemester(); i > 0; i--) {
             List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
             InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-            inlineKeyboardButton.setText("Семестр №" + i);
+            if (i == appUserRepository.findByChatId(chatId).getCurrentSemester()) {
+                inlineKeyboardButton.setText("Семестр №" + i + " (текущий)");
+            } else {
+                inlineKeyboardButton.setText("Семестр №" + i);
+            }
             inlineKeyboardButton.setCallbackData("/semester_" + i);
             lineOfButtons1.add(inlineKeyboardButton);
 
@@ -135,14 +141,7 @@ public class MainServiceImpl implements MainService {
             editMessageText.setText("Вы не зарегистрированы");
         }
 
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + appUserRepository.findByChatId(chatId).getAccess_token());
-        ResponseEntity<Map> response2 = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-        Map<String, Object> responseBody = response2.getBody();
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<Map<String, Object>> marks = objectMapper.convertValue(responseBody.get("marks"), new TypeReference<>() {});
-        List<SubjectMarks> subjectMarks = jsonMapper.jsonToSubjectMarks(marks, semesterNumber);
+        List<SubjectMarks> subjectMarks = jsonMapper.getStudentMarksBySemester(appUserRepository.findByChatId(chatId).getStudentMarks(), semesterNumber);
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(String.format("*__Ваши оценки за %d семестр:__*\n\n", semesterNumber));
@@ -157,8 +156,47 @@ public class MainServiceImpl implements MainService {
                         subjectMark.getSubject_name(), subjectMark.getAtt1(), subjectMark.getAtt2(), subjectMark.getAtt3(), subjectMark.getResult(), subjectMark.getResult5()));
                 stringBuilder.append("\n\n");
             }
-            var sb = new StringBuilder(stringBuilder.toString().replace("+", "\\+").replace("-", "\\-").replace("null", "~   ~"));
+            var sb = new StringBuilder(stringBuilder.toString().replace("+", "\\+").replace("-", "\\-").replace("null", "~   ~").replace(".", "\\."));
             editMessageText.setText(sb.toString());
+        }
+
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
+
+        List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
+        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
+        inlineKeyboardButton1.setText("Вернуться в меню");
+        inlineKeyboardButton1.setCallbackData("/menu");
+        lineOfButtons1.add(inlineKeyboardButton1);
+        listOfButtons.add(lineOfButtons1);
+
+        markupInline.setKeyboard(listOfButtons);
+        editMessageText.setReplyMarkup(markupInline);
+
+        producerService.produceEditAnswer(editMessageText);
+    }
+
+    public void studentInfoProcess(Long chatId, Integer messageId) {
+        var editMessageText = new EditMessageText();
+        editMessageText.setChatId(chatId);
+        editMessageText.setMessageId(messageId);
+        editMessageText.setParseMode("MarkdownV2");
+
+        Map<String, Object> studentInfo = apiService.getStudentInfo(appUserRepository.findByChatId(chatId).getAccessToken());
+
+        if (studentInfo == null) {
+            editMessageText.setText("Не удалось получить данные");
+        } else {
+            editMessageText.setText(String.format(
+                    "*ФИО:*\n" + "%s %s %s\n\n" +
+                    "*Факультет:*\n" + "%s\n\n" +
+                    "*Специализация:*\n" + "%s\n\n" +
+                    "*Направление:*\n" + "%s\n\n" +
+                    "*Текущий семестр:*\n" + "%d\n\n" +
+                    "*Группа:*\n" + "%d\\.%d",
+                    studentInfo.get("surname"), studentInfo.get("firstname"), studentInfo.get("middlename"),
+                    studentInfo.get("faculty_name"), studentInfo.get("specialization"), studentInfo.get("specialty_name"),
+                    (Integer) studentInfo.get("semester"), (Integer) studentInfo.get("group"), (Integer) studentInfo.get("sub_group")));
         }
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
@@ -181,7 +219,10 @@ public class MainServiceImpl implements MainService {
         var editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setMessageId(messageId);
-        editMessageText.setText("В данный момент уведомления недоступны");
+        AppUser appUser = appUserRepository.findByChatId(chatId);
+        appUser.setToggleNotification(!appUser.isToggleNotification());
+        appUserRepository.save(appUser);
+        editMessageText.setText("Уведомления " + (appUser.isToggleNotification() ? "включены✅" : "выключены❌"));
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();

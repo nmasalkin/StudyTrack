@@ -20,18 +20,20 @@ public class AppUser {
     @Id
     private Long chatId;
 
-    private String firstName;
+    private String firstname;
+
+    private Integer currentSemester;
 
     @JdbcTypeCode(SqlTypes.BOOLEAN)
-    private boolean toggle_notification;
+    private boolean toggleNotification;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    private String access_token;
+    private String accessToken;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    private String refresh_token;
+    private String refreshToken;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<Map<String, Object>> student_marks;
+    private List<Map<String, Object>> studentMarks;
 }
