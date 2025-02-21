@@ -9,6 +9,8 @@
         <option value="$PROJECT_DIR$/dispatcher/pom.xml" />
         <option value="$PROJECT_DIR$/node/pom.xml" />
         <option value="$PROJECT_DIR$/common/pom.xml" />
+        <option value="$PROJECT_DIR$/common-jpa/pom.xml" />
+        <option value="$PROJECT_DIR$/common-rabbitmq/pom.xml" />
       </list>
     </option>
   </component>
