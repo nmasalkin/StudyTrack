@@ -80,30 +80,35 @@ public class StartServiceImpl implements StartService {
         } else if (MENU.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
+                startProcess(update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.menuProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (SEMESTER_LIST.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
+                startProcess(update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.chooseSemesterProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (STUDENT_INFO.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
+                startProcess(update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.studentInfoProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (TOGGLE_NOTIFICATION.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
+                startProcess(update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.toggleNotificationProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (data.contains("/semester")) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
                 sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
+                startProcess(update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.semesterProcess(Integer.parseInt(data.replace("/semester_", "")), update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
@@ -122,7 +127,7 @@ public class StartServiceImpl implements StartService {
     private void startProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("👋 Приветствуем вас!\n" +
+        sendMessage.setText("👋 Приветствую вас!\n" +
                             "\n" +
                             "Этот бот 🤖 создан для удобного просмотра ваших оценок и уведомлений о новых с сайта БРС 📚. Будьте в курсе всех изменений и важных событий в вашем учебном процессе! ✨\n" +
                             "\n" +
