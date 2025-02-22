@@ -35,7 +35,7 @@ public class MainServiceImpl implements MainService {
     public void menuProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("➡️ Выберите желаемое действие");
+        sendMessage.setText("Выберите желаемое действие");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
@@ -71,7 +71,7 @@ public class MainServiceImpl implements MainService {
         var editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setMessageId(messageId);
-        editMessageText.setText("➡️ Выберите желаемое действие");
+        editMessageText.setText("Выберите желаемое действие");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
@@ -107,7 +107,7 @@ public class MainServiceImpl implements MainService {
         var editMessage = new EditMessageText();
         editMessage.setChatId(chatId);
         editMessage.setMessageId(messageId);
-        editMessage.setText("➡️ Выберите семестр из списка");
+        editMessage.setText("Выберите семестр из списка");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
@@ -250,7 +250,7 @@ public class MainServiceImpl implements MainService {
     public void aboutBotProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("🤖 Данный бот создан для удобного просмотра оценок студентов и получения уведомлений о новых оценках с системы БРС\\.\n" +
+        sendMessage.setText("🤖 Данный бот создан для удобного просмотра оценок студентов и получения уведомлений о новых оценках с системы БРС.\n" +
                             "\n" +
                             "Будьте в курсе своих успехов, следите за изменениями в успеваемости и не пропускайте новые оценки\\! 🔔\n" +
                             "\n" +
