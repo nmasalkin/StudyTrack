@@ -1,7 +1,6 @@
 package ru.vsu.cs.masalkin.controller;
 
 import jakarta.annotation.PostConstruct;
-import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -12,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
-@Log4j
 public class TelegramBot extends TelegramLongPollingBot {
 
     @Value("${telegram.bot.name}")
@@ -50,7 +48,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 execute(sendMessage);
             } catch (TelegramApiException e) {
-                log.error(e);
+                e.printStackTrace();
             }
         }
     }
@@ -60,7 +58,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 execute(editMessageText);
             } catch (TelegramApiException e) {
-                log.error(e);
+                e.printStackTrace();
             }
         }
     }
@@ -70,7 +68,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 execute(deleteMessage);
             } catch (TelegramApiException e) {
-                log.error(e);
+                e.printStackTrace();
             }
         }
     }

@@ -2,6 +2,7 @@ package ru.vsu.cs.masalkin.service.impl;
 
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.masalkin.entity.SubjectMarks;
+import ru.vsu.cs.masalkin.service.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;

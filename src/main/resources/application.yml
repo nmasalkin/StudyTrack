@@ -1,22 +1,4 @@
-server:
-  port:
-
 telegram:
   bot:
     name: ${TELEGRAM_BOT_NAME}
     token: ${TELEGRAM_BOT_TOKEN}
-
-spring:
-  rabbitmq:
-    host:
-    port:
-    username:
-    password:
-  datasource:
-    url:
-    username:
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQLDialect

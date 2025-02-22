@@ -1,6 +1,5 @@
 package ru.vsu.cs.masalkin.service.impl;
 
-import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -25,7 +24,6 @@ import static ru.vsu.cs.masalkin.service.enums.UserState.WAITING_FOR_LOGIN;
 import static ru.vsu.cs.masalkin.service.enums.UserState.WAITING_FOR_PASSWORD;
 
 @Service
-@Log4j
 public class StartServiceImpl implements StartService {
 
     private final ProducerService producerService;
@@ -50,33 +48,26 @@ public class StartServiceImpl implements StartService {
 
         if (START.equals(text)) {
             startProcess(update.getMessage().getChatId());
-            log.debug("Start command received " + update);
         } else if (MENU.equals(text)) {
             if (appUserRepository.existsByChatId(update.getMessage().getChatId())) {
                 mainService.menuProcess(update.getMessage().getChatId());
-                log.debug("Menu command received " + update);
             } else {
-                sendAnswer("Вы не зарегистрированы", update.getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getMessage().getChatId());
                 startProcess(update.getMessage().getChatId());
-                log.debug("User not registered " + update);
             }
         } else if (ABOUT_BOT.equals(text)) {
             mainService.aboutBotProcess(update.getMessage().getChatId());
-            log.debug("About bot command received " + update);
         } else if (WAITING_FOR_LOGIN.equals(userStates.get(update.getMessage().getChatId()))) {
             handleLogin(update.getMessage().getChatId(), text);
-            log.debug("The login is introduced " + update);
         } else if (WAITING_FOR_PASSWORD.equals(userStates.get(update.getMessage().getChatId()))) {
             DeleteMessage deleteMessage = new DeleteMessage();
             deleteMessage.setChatId(update.getMessage().getChatId());
             deleteMessage.setMessageId(update.getMessage().getMessageId());
             producerService.produceDeleteMessage(deleteMessage);
-            sendAnswer("Провожу регистрацию...", update.getMessage().getChatId());
+            sendAnswer("📝 Провожу регистрацию... Пожалуйста, подождите. ⏳", update.getMessage().getChatId());
             handlePassword(update.getMessage().getChatId(), text);
-            log.debug("The password is introduced " + update);
         } else {
-            log.error("Unknown command " + text);
-            sendAnswer("Неизвестная команда", update.getMessage().getChatId());
+            sendAnswer("❌ Неизвестная команда. Пожалуйста, используйте доступные команды.", update.getMessage().getChatId());
         }
     }
 
@@ -88,37 +79,36 @@ public class StartServiceImpl implements StartService {
             registrationProcess(update.getCallbackQuery().getMessage().getChatId());
         } else if (MENU.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
-                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.menuProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (SEMESTER_LIST.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
-                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.chooseSemesterProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (STUDENT_INFO.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
-                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.studentInfoProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (TOGGLE_NOTIFICATION.equals(data)) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
-                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.toggleNotificationProcess(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else if (data.contains("/semester")) {
             if (!appUserRepository.existsByChatId(update.getCallbackQuery().getMessage().getChatId())) {
-                sendAnswer("Вы не зарегистрированы", update.getCallbackQuery().getMessage().getChatId());
+                sendAnswer("⚠️ Вы не зарегистрированы. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚", update.getCallbackQuery().getMessage().getChatId());
             } else {
                 mainService.semesterProcess(Integer.parseInt(data.replace("/semester_", "")), update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
             }
         } else {
-            log.error("Unknown command " + data);
-            sendAnswer("Неизвестная команда", update.getCallbackQuery().getMessage().getChatId());
+            sendAnswer("❌ Неизвестная команда. Пожалуйста, используйте доступные команды.", update.getCallbackQuery().getMessage().getChatId());
         }
     }
 
@@ -132,14 +122,18 @@ public class StartServiceImpl implements StartService {
     private void startProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("👋Приветствую! Для того чтобы начать пользоваться данным ботом🤖, необходимо пройти регистрацию😁");
+        sendMessage.setText("👋 Приветствуем вас!\n" +
+                            "\n" +
+                            "Этот бот 🤖 создан для удобного просмотра ваших оценок и уведомлений о новых с сайта БРС 📚. Будьте в курсе всех изменений и важных событий в вашем учебном процессе! ✨\n" +
+                            "\n" +
+                            "Чтобы начать пользоваться ботом, пройдите быструю регистрацию 😁");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Регистрация");
+        inlineKeyboardButton1.setText("📝 Регистрация");
         inlineKeyboardButton1.setCallbackData("/registration");
         lineOfButtons1.add(inlineKeyboardButton1);
 
@@ -154,17 +148,17 @@ public class StartServiceImpl implements StartService {
     private void registrationProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Для того чтобы зарегистрироваться нужно ввести данные от БРС.\n" +
-                            "На ввод логина и пароля дается 2 минуты.");
+        sendMessage.setText("Для регистрации необходимо ввести данные от БРС 🔐\n" +
+                            "На ввод логина и пароля у вас есть 1 минута ⏳");
         producerService.produceAnswer(sendMessage);
-        sendAnswer("Введите логин", chatId);
+        sendAnswer("Пожалуйста, введите ваш логин", chatId);
 
         ScheduledFuture<?> future = scheduler.schedule(() -> {
             userStates.remove(chatId);
             userLogins.remove(chatId);
             pendingUsers.remove(chatId);
             sendTimeoutMessage(chatId);
-        }, 2, TimeUnit.MINUTES);
+        }, 1, TimeUnit.MINUTES);
         pendingUsers.put(chatId, future);
 
         userStates.put(chatId, WAITING_FOR_LOGIN);
@@ -176,7 +170,7 @@ public class StartServiceImpl implements StartService {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Введите пароль");
+        sendMessage.setText("Пожалуйста, введите ваш пароль");
         producerService.produceAnswer(sendMessage);
     }
 
@@ -197,11 +191,13 @@ public class StartServiceImpl implements StartService {
         sendMessage.setChatId(chatId);
         if (appUser != null) {
             appUserRepository.save(appUser);
-            sendMessage.setText(appUser.getFirstname() + ", вы успешно зарегистрировались!");
+            sendMessage.setText("Добро пожаловать, " + appUser.getFirstname()+ "\n" +
+                                "✅ Регистрация успешно завершена!\n" + "\n" +
+                                "Теперь вы можете просмотреть ваши текущие оценки и будете получать уведомления о новых 🔔");
             producerService.produceAnswer(sendMessage);
             mainService.menuProcess(chatId);
         } else {
-            sendMessage.setText("Неверные данные");
+            sendMessage.setText("❌ Введены неверные данные. Пожалуйста, попробуйте снова 🔄");
             producerService.produceAnswer(sendMessage);
         }
 
@@ -211,7 +207,7 @@ public class StartServiceImpl implements StartService {
     private void sendTimeoutMessage(Long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("⏳Время для ввода истекло. Повторите попытку.");
+        sendMessage.setText("⏳Время ввода истекло. Пожалуйста, попробуйте снова 🔄");
         producerService.produceAnswer(sendMessage);
         startProcess(chatId);
     }

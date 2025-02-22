@@ -2,7 +2,6 @@ package ru.vsu.cs.masalkin.api.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.log4j.Log4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Log4j
 public class ApiServiceImpl implements ApiService {
 
     private final AppUserRepository appUserRepository;
@@ -35,7 +33,6 @@ public class ApiServiceImpl implements ApiService {
         try {
             responseTokens = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/auth_jwt/login", HttpMethod.POST, request, Map.class);
         } catch (Exception e) {
-            log.error(e);
             return null;
         }
 
@@ -105,7 +102,6 @@ public class ApiServiceImpl implements ApiService {
             try {
                 responseStudentMarks = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
             } catch (Exception ex) {
-                log.error(ex);
                 return null;
             }
             appUser.setAccessToken(tokens[0]);
@@ -135,7 +131,6 @@ public class ApiServiceImpl implements ApiService {
             try {
                 responseStudentInfo = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, entity, Map.class);
             } catch (Exception ex) {
-                log.error(ex);
                 return null;
             }
             appUser.setAccessToken(tokens[0]);
@@ -157,7 +152,6 @@ public class ApiServiceImpl implements ApiService {
         try {
             responseTokens = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/auth_jwt/refresh", HttpMethod.POST, entity, Map.class);
         } catch (Exception e) {
-            log.error(e);
             return null;
         }
         String[] tokens = new String[2];

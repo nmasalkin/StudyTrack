@@ -9,6 +9,7 @@ import ru.vsu.cs.masalkin.entity.AppUser;
 import ru.vsu.cs.masalkin.entity.SubjectMarks;
 import ru.vsu.cs.masalkin.repository.AppUserRepository;
 import ru.vsu.cs.masalkin.api.ApiService;
+import ru.vsu.cs.masalkin.service.JsonMapper;
 import ru.vsu.cs.masalkin.service.MainService;
 import ru.vsu.cs.masalkin.messaging.ProducerService;
 
@@ -34,24 +35,31 @@ public class MainServiceImpl implements MainService {
     public void menuProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Выберите желаемое действие");
+        sendMessage.setText("➡️ Выберите желаемое действие");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Список семестров");
+        inlineKeyboardButton1.setText("📊 Список оценок по семестрам");
         inlineKeyboardButton1.setCallbackData("/semester_list");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
 
         List<InlineKeyboardButton> lineOfButtons2 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton2.setText("Вкл/выкл уведомления");
-        inlineKeyboardButton2.setCallbackData("/toggle_notification");
+        inlineKeyboardButton2.setText("ℹ️ Информация о студенте");
+        inlineKeyboardButton2.setCallbackData("/student_info");
         lineOfButtons2.add(inlineKeyboardButton2);
         listOfButtons.add(lineOfButtons2);
+
+        List<InlineKeyboardButton> lineOfButtons3 = new ArrayList<>();
+        InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
+        inlineKeyboardButton3.setText("🔔 Вкл/Выкл уведомления");
+        inlineKeyboardButton3.setCallbackData("/toggle_notification");
+        lineOfButtons3.add(inlineKeyboardButton3);
+        listOfButtons.add(lineOfButtons3);
 
         markupInline.setKeyboard(listOfButtons);
         sendMessage.setReplyMarkup(markupInline);
@@ -63,28 +71,28 @@ public class MainServiceImpl implements MainService {
         var editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setMessageId(messageId);
-        editMessageText.setText("Выберите желаемое действие");
+        editMessageText.setText("➡️ Выберите желаемое действие");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Список семестров");
+        inlineKeyboardButton1.setText("📊 Список оценок по семестрам");
         inlineKeyboardButton1.setCallbackData("/semester_list");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
 
         List<InlineKeyboardButton> lineOfButtons2 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton2.setText("Инфо о студенте");
+        inlineKeyboardButton2.setText("ℹ️ Информация о студенте");
         inlineKeyboardButton2.setCallbackData("/student_info");
         lineOfButtons2.add(inlineKeyboardButton2);
         listOfButtons.add(lineOfButtons2);
 
         List<InlineKeyboardButton> lineOfButtons3 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
-        inlineKeyboardButton3.setText("Вкл/выкл уведомления");
+        inlineKeyboardButton3.setText("🔔 Вкл/Выкл уведомления");
         inlineKeyboardButton3.setCallbackData("/toggle_notification");
         lineOfButtons3.add(inlineKeyboardButton3);
         listOfButtons.add(lineOfButtons3);
@@ -99,7 +107,7 @@ public class MainServiceImpl implements MainService {
         var editMessage = new EditMessageText();
         editMessage.setChatId(chatId);
         editMessage.setMessageId(messageId);
-        editMessage.setText("Выберите семестр из списка");
+        editMessage.setText("➡️ Выберите семестр из списка");
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
@@ -120,7 +128,7 @@ public class MainServiceImpl implements MainService {
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Вернуться в меню");
+        inlineKeyboardButton1.setText("🔙 Вернуться в меню");
         inlineKeyboardButton1.setCallbackData("/menu");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
@@ -137,16 +145,16 @@ public class MainServiceImpl implements MainService {
         editMessageText.setMessageId(messageId);
         editMessageText.setParseMode("MarkdownV2");
         if (!appUserRepository.existsByChatId(chatId)) {
-            editMessageText.setText("Вы не зарегистрированы");
+            editMessageText.setText("⚠️ Вы не зарегистрированы\\. Пожалуйста, пройдите регистрацию, чтобы получать оценки и уведомления с БРС 📚");
         }
 
         List<SubjectMarks> subjectMarks = jsonMapper.getStudentMarksBySemester(appUserRepository.findByChatId(chatId).getStudentMarks(), semesterNumber);
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(String.format("*__Ваши оценки за %d семестр:__*\n\n", semesterNumber));
+        stringBuilder.append(String.format("📊 *__Ваши оценки за %d семестр:__*\n\n", semesterNumber));
 
         if (subjectMarks.isEmpty()) {
-            editMessageText.setText("У вас нет оценок за данный семестр");
+            editMessageText.setText("📌 Оценки за данный семестр отсутствуют");
         } else {
             for (SubjectMarks subjectMark : subjectMarks) {
                 stringBuilder.append(String.format("*%s*:\n" +
@@ -164,7 +172,7 @@ public class MainServiceImpl implements MainService {
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Вернуться в меню");
+        inlineKeyboardButton1.setText("🔙 Вернуться в меню");
         inlineKeyboardButton1.setCallbackData("/menu");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
@@ -184,7 +192,7 @@ public class MainServiceImpl implements MainService {
         Map<String, Object> studentInfo = apiService.getStudentInfo(chatId);
 
         if (studentInfo == null) {
-            editMessageText.setText("Не удалось получить данные");
+            editMessageText.setText("⚠️ Не удалось получить данные\\.");
         } else {
             editMessageText.setText(String.format(
                     "*ФИО:*\n" + "%s %s %s\n\n" +
@@ -203,7 +211,7 @@ public class MainServiceImpl implements MainService {
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Вернуться в меню");
+        inlineKeyboardButton1.setText("🔙 Вернуться в меню");
         inlineKeyboardButton1.setCallbackData("/menu");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
@@ -221,14 +229,14 @@ public class MainServiceImpl implements MainService {
         AppUser appUser = appUserRepository.findByChatId(chatId);
         appUser.setToggleNotification(!appUser.isToggleNotification());
         appUserRepository.save(appUser);
-        editMessageText.setText("Уведомления " + (appUser.isToggleNotification() ? "включены✅" : "выключены❌"));
+        editMessageText.setText("Уведомления " + (appUser.isToggleNotification() ? "включены 🔔" : "выключены 🔕"));
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
 
         List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Вернуться в меню");
+        inlineKeyboardButton1.setText("🔙 Вернуться в меню");
         inlineKeyboardButton1.setCallbackData("/menu");
         lineOfButtons1.add(inlineKeyboardButton1);
         listOfButtons.add(lineOfButtons1);
@@ -242,7 +250,12 @@ public class MainServiceImpl implements MainService {
     public void aboutBotProcess(Long chatId) {
         var sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Данный бот создан для удобного просмотра оценок студентов");
+        sendMessage.setParseMode("MarkdownV2");
+        sendMessage.setText("🤖 Данный бот создан для удобного просмотра оценок студентов и получения уведомлений о новых оценках с системы БРС\\.\n" +
+                            "\n" +
+                            "Будьте в курсе своих успехов, следите за изменениями в успеваемости и не пропускайте новые оценки\\! 🔔\n" +
+                            "\n" +
+                            "📩 По вопросам и предложениям пишите мне в Telegram: \\[Связаться\\]\\(https://t.me/el_nikitinho\\)");
         producerService.produceAnswer(sendMessage);
     }
 }

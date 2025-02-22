@@ -1,4 +1,4 @@
-package ru.vsu.cs.masalkin.service.impl;
+package ru.vsu.cs.masalkin.service;
 
 import ru.vsu.cs.masalkin.entity.SubjectMarks;
 

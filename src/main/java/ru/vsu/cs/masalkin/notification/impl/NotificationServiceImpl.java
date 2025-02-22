@@ -1,6 +1,5 @@
 package ru.vsu.cs.masalkin.notification.impl;
 
-import lombok.extern.log4j.Log4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,13 +11,12 @@ import ru.vsu.cs.masalkin.repository.AppUserRepository;
 import ru.vsu.cs.masalkin.api.ApiService;
 import ru.vsu.cs.masalkin.notification.NotificationService;
 import ru.vsu.cs.masalkin.messaging.ProducerService;
-import ru.vsu.cs.masalkin.service.impl.JsonMapper;
+import ru.vsu.cs.masalkin.service.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Log4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final AppUserRepository appUserRepository;
@@ -36,7 +34,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Scheduled(fixedRate = 180000)
     public void notificationProcess() {
-        log.debug("Start notification process");
         List<AppUser> appUserList = appUserRepository.findAppUsersByToggleNotificationIsTrue();
         for (AppUser appUser : appUserList) {
             List<SubjectMarks> newMarks = jsonMapper.getStudentMarks(apiService.getStudentMarks(appUser.getChatId()));
