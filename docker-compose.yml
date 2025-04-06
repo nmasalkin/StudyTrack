@@ -15,7 +15,7 @@ services:
     volumes:
       - pg_studytrack:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5433:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -52,6 +52,10 @@ services:
     environment:
       - TELEGRAM_BOT_NAME=${TELEGRAM_BOT_NAME}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - API_AUTH_LOGIN=${API_AUTH_LOGIN}
+      - API_AUTH_REFRESH=${API_AUTH_REFRESH}
+      - API_STUDENT_MARKS=${API_STUDENT_MARKS}
+      - API_STUDENT_INFO=${API_STUDENT_INFO}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://studytrack_db:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}

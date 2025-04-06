@@ -3,6 +3,14 @@ telegram:
     name: ${TELEGRAM_BOT_NAME}
     token: ${TELEGRAM_BOT_TOKEN}
 
+api:
+  auth:
+    login: ${API_AUTH_LOGIN}
+    refresh: ${API_AUTH_REFRESH}
+  student:
+    marks: ${API_STUDENT_MARKS}
+    info: ${API_STUDENT_INFO}
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver

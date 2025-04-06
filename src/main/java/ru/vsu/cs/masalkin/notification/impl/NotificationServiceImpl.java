@@ -34,40 +34,49 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Scheduled(fixedRate = 180000)
     public void notificationProcess() {
-        List<AppUser> appUserList = appUserRepository.findAppUsersByToggleNotificationIsTrue();
+        List<AppUser> appUserList = appUserRepository.findAll();
         for (AppUser appUser : appUserList) {
             List<SubjectMarks> newMarks = jsonMapper.getStudentMarks(apiService.getStudentMarks(appUser.getChatId()));
             List<SubjectMarks> appUserMarks = jsonMapper.getStudentMarks(appUser.getStudentMarks());
             if (!newMarks.equals(appUserMarks)) {
-                SendMessage sendMessage = new SendMessage();
-                if (newMarks.size() == appUserMarks.size()) {
-                    sendMessage.setChatId(appUser.getChatId());
-                    StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append("Получена/изменена оценка по предметам:").append("\n");
-                    for (int i = 0; i < newMarks.size(); i++) {
-                        if (!newMarks.get(i).equals(appUserMarks.get(i))){
-                            stringBuilder.append(newMarks.get(i).getSubjectName()).append("\n");
-                        }
-                    }
-                    sendMessage.setText(stringBuilder.toString());
+                if (appUser.isToggleNotification()) {
+                    sendNotification(appUser, newMarks, appUserMarks);
                 } else {
-                    sendMessage.setChatId(appUser.getChatId());
-                    sendMessage.setText("Доступен новый семестр/предмет");
+                    AppUser updateAppUser = apiService.updateUser(appUser);
+                    appUserRepository.save(updateAppUser);
                 }
-                AppUser updateAppUser = apiService.updateUser(appUser);
-                appUserRepository.save(updateAppUser);
-                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-                List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
-                List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
-                InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-                inlineKeyboardButton1.setText("Список семестров");
-                inlineKeyboardButton1.setCallbackData("/semester_list");
-                lineOfButtons1.add(inlineKeyboardButton1);
-                listOfButtons.add(lineOfButtons1);
-                markupInline.setKeyboard(listOfButtons);
-                sendMessage.setReplyMarkup(markupInline);
-                producerService.produceAnswer(sendMessage);
             }
         }
+    }
+
+    private void sendNotification(AppUser appUser, List<SubjectMarks> newMarks, List<SubjectMarks> appUserMarks) {
+        SendMessage sendMessage = new SendMessage();
+        if (newMarks.size() == appUserMarks.size()) {
+            sendMessage.setChatId(appUser.getChatId());
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Получена/изменена оценка по предметам:").append("\n");
+            for (int i = 0; i < newMarks.size(); i++) {
+                if (!newMarks.get(i).equals(appUserMarks.get(i))) {
+                    stringBuilder.append(newMarks.get(i).getSubjectName()).append("\n");
+                }
+            }
+            sendMessage.setText(stringBuilder.toString());
+        } else {
+            sendMessage.setChatId(appUser.getChatId());
+            sendMessage.setText("Доступен новый семестр/предмет");
+        }
+        AppUser updateAppUser = apiService.updateUser(appUser);
+        appUserRepository.save(updateAppUser);
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> listOfButtons = new ArrayList<>();
+        List<InlineKeyboardButton> lineOfButtons1 = new ArrayList<>();
+        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
+        inlineKeyboardButton1.setText("Список семестров");
+        inlineKeyboardButton1.setCallbackData("/semester_list");
+        lineOfButtons1.add(inlineKeyboardButton1);
+        listOfButtons.add(lineOfButtons1);
+        markupInline.setKeyboard(listOfButtons);
+        sendMessage.setReplyMarkup(markupInline);
+        producerService.produceAnswer(sendMessage);
     }
 }

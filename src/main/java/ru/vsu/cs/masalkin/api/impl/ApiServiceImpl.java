@@ -2,6 +2,7 @@ package ru.vsu.cs.masalkin.api.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +15,15 @@ import java.util.Map;
 
 @Service
 public class ApiServiceImpl implements ApiService {
+
+    @Value("${api.auth.login}")
+    private String loginUrl;
+    @Value("${api.auth.refresh}")
+    private String refreshUrl;
+    @Value("${api.student.marks}")
+    private String studentMarksUrl;
+    @Value("${api.student.info}")
+    private String studentInfoUrl;
 
     private final AppUserRepository appUserRepository;
 
@@ -31,7 +41,7 @@ public class ApiServiceImpl implements ApiService {
 
         ResponseEntity<Map> responseTokens;
         try {
-            responseTokens = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/auth_jwt/login", HttpMethod.POST, request, Map.class);
+            responseTokens = restTemplate.exchange(loginUrl, HttpMethod.POST, request, Map.class);
         } catch (Exception e) {
             return null;
         }
@@ -55,7 +65,7 @@ public class ApiServiceImpl implements ApiService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + access_token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map> responseStudentMarks = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
+        ResponseEntity<Map> responseStudentMarks = restTemplate.exchange(studentMarksUrl, HttpMethod.GET, entity, Map.class);
         Map<String, Object> responseBody = responseStudentMarks.getBody();
         return new ObjectMapper().convertValue(responseBody.get("marks"), new TypeReference<>() {
         });
@@ -66,7 +76,7 @@ public class ApiServiceImpl implements ApiService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + access_token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map> responseStudentInfo = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, entity, Map.class);
+        ResponseEntity<Map> responseStudentInfo = restTemplate.exchange(studentInfoUrl, HttpMethod.GET, entity, Map.class);
         return new ObjectMapper().convertValue(responseStudentInfo.getBody(), new TypeReference<>() {
         });
     }
@@ -94,13 +104,13 @@ public class ApiServiceImpl implements ApiService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<Map> responseStudentMarks;
         try {
-            responseStudentMarks = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
+            responseStudentMarks = restTemplate.exchange(studentMarksUrl, HttpMethod.GET, entity, Map.class);
         } catch (Exception e) {
             String[] tokens = updateTokens(appUser.getRefreshToken());
             headers.set("Authorization", "Bearer " + tokens[0]);
             entity = new HttpEntity<>(headers);
             try {
-                responseStudentMarks = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_marks", HttpMethod.GET, entity, Map.class);
+                responseStudentMarks = restTemplate.exchange(studentMarksUrl, HttpMethod.GET, entity, Map.class);
             } catch (Exception ex) {
                 return null;
             }
@@ -123,13 +133,13 @@ public class ApiServiceImpl implements ApiService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<Map> responseStudentInfo;
         try {
-            responseStudentInfo = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, entity, Map.class);
+            responseStudentInfo = restTemplate.exchange(studentInfoUrl, HttpMethod.GET, entity, Map.class);
         } catch (Exception e) {
             String[] tokens = updateTokens(appUser.getRefreshToken());
             headers.set("Authorization", "Bearer " + tokens[0]);
             entity = new HttpEntity<>(headers);
             try {
-                responseStudentInfo = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/student_info", HttpMethod.GET, entity, Map.class);
+                responseStudentInfo = restTemplate.exchange(studentInfoUrl, HttpMethod.GET, entity, Map.class);
             } catch (Exception ex) {
                 return null;
             }
@@ -150,7 +160,7 @@ public class ApiServiceImpl implements ApiService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<Map> responseTokens;
         try {
-            responseTokens = restTemplate.exchange("https://www.cs.vsu.ru/brs/api/auth_jwt/refresh", HttpMethod.POST, entity, Map.class);
+            responseTokens = restTemplate.exchange(refreshUrl, HttpMethod.POST, entity, Map.class);
         } catch (Exception e) {
             return null;
         }
