@@ -5,7 +5,7 @@ volumes:
   rabbitmq_data:
 
 services:
-  studytrack_db:
+  db:
     image: postgres:17.3
     restart: always
     environment:
@@ -45,13 +45,14 @@ services:
     ports:
       - "8085:8080"
     depends_on:
-      studytrack_db:
+      db:
         condition: service_healthy
       rabbit-mq:
         condition: service_healthy
     environment:
       - TELEGRAM_BOT_NAME=${TELEGRAM_BOT_NAME}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
       - API_AUTH_LOGIN=${API_AUTH_LOGIN}
       - API_AUTH_REFRESH=${API_AUTH_REFRESH}
       - API_STUDENT_MARKS=${API_STUDENT_MARKS}
