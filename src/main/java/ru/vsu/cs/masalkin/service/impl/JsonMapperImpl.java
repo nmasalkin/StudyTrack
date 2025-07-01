@@ -15,7 +15,7 @@ public class JsonMapperImpl implements JsonMapper {
         List<SubjectMarks> subjectMarksList = new ArrayList<>();
         for (Map<String, Object> map : json){
             if (map.get("semester").equals(semesterNumber)){
-                subjectMarksList.add(new SubjectMarks(map.get("subject_name").toString().replaceAll("\\s?\\(.*?\\)", ""), (Integer) map.get("att1"), (Integer) map.get("att2"), (Integer) map.get("att3"), (Integer) map.get("result")));
+                subjectMarksList.add(new SubjectMarks(map.get("subject_name").toString().replaceAll("\\s?\\(.*?\\)", ""), (Integer) map.get("att_mark_1"), (Integer) map.get("att_mark_2"), (Integer) map.get("att_mark_3"), (Integer) map.get("result")));
             }
         }
         return subjectMarksList;
@@ -25,7 +25,7 @@ public class JsonMapperImpl implements JsonMapper {
     public List<SubjectMarks> getStudentMarks(List<Map<String, Object>> json) {
         List<SubjectMarks> subjectMarksList = new ArrayList<>();
         for (Map<String, Object> map : json){
-            subjectMarksList.add(new SubjectMarks(map.get("subject_name").toString().replaceAll("\\s?\\(.*?\\)", ""), (Integer) map.get("att1"), (Integer) map.get("att2"), (Integer) map.get("att3"), (Integer) map.get("result")));
+            subjectMarksList.add(new SubjectMarks(map.get("subject_name").toString().replaceAll("\\s?\\(.*?\\)", ""), (Integer) map.get("att_mark_1"), (Integer) map.get("att_mark_2"), (Integer) map.get("att_mark_3"), (Integer) map.get("result")));
         }
         return subjectMarksList;
     }
